@@ -27,5 +27,10 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<class UABCharacterAttributeSet> AttributeSet;
-	
+
+	UPROPERTY(EditAnywhere, Category = Level)
+	float Level;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UGameplayEffect> InitStatEffect;
 };
