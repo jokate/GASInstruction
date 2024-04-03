@@ -7,6 +7,10 @@
 #include "Components/CapsuleComponent.h"
 #include "Physics/ABCollision.h"
 #include "DrawDebugHelpers.h"
+#include "AbilitySystemComponent.h"
+#include "Attribute/ABCharacterAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "ArenaBattleGAS.h"
 
 AABTA_Trace::AABTA_Trace()
 {
@@ -34,11 +38,26 @@ FGameplayAbilityTargetDataHandle AABTA_Trace::MakeTargetData() const
 	//이제 실제로 TargetData를 가져올 것임.
 	ACharacter* Character = CastChecked<ACharacter>(SourceActor);
 
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+	if (!ASC)
+	{
+		ABGAS_LOG(LogABGAS, Error, TEXT("ASC NOT FOUND!"));
+		return FGameplayAbilityTargetDataHandle();
+	}
+
+	const UABCharacterAttributeSet* AttributeSet = ASC->GetSet<UABCharacterAttributeSet>();
+
+	if (!AttributeSet)
+	{
+		ABGAS_LOG(LogABGAS, Error, TEXT("ABCharacterAttributeSet not Found"));
+		return FGameplayAbilityTargetDataHandle();
+	}
+	
 	FHitResult OutHitResult;
 
 	//해당 부분은 이제 차후 Attribute를 이용하여 주입을 할 예정임.
-	const float AttackRange = 100.0f;
-	const float AttackRadius = 50.0f;
+	const float AttackRange = AttributeSet->GetAttackRange();
+	const float AttackRadius = AttributeSet->GetAttackRadius();
 	
 	//Trace를 위한 기초작업 정리.
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(UABTA_Trace), false, Character);

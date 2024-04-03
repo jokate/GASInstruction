@@ -6,6 +6,7 @@
 #include "ArenaBattleGAS.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AT/ABAT_Trace.h"
+#include "Attribute/ABCharacterAttributeSet.h"
 #include "TA/ABTA_Trace.h"
 
 UABGA_AttackHitCheck::UABGA_AttackHitCheck()
@@ -31,6 +32,27 @@ void UABGA_AttackHitCheck::OnTraceResultCallback(const FGameplayAbilityTargetDat
 	{
 		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
 		ABGAS_LOG(LogABGAS, Log, TEXT("Target %s Detected"), *HitResult.GetActor()->GetName());
+		//현재 SourceActor의 ASC를 가져온다.
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+
+		if (!SourceASC || !TargetASC)
+		{
+			ABGAS_LOG(LogABGAS, Error, TEXT("ASC NOT FOUND"))
+			return;
+		}
+
+		const UABCharacterAttributeSet* SourceAttribute = SourceASC->GetSet<UABCharacterAttributeSet>();
+		UABCharacterAttributeSet* TargetAttribute = const_cast<UABCharacterAttributeSet*>(TargetASC->GetSet<UABCharacterAttributeSet>());
+
+		if (!SourceAttribute || !TargetAttribute)
+		{
+			ABGAS_LOG(LogABGAS, Error, TEXT("ASC NOT FOUND"))
+			return;
+		}
+
+		const float AttackDamage = SourceAttribute->GetAttackRate();
+		TargetAttribute->SetHealth(TargetAttribute->GetHealth() - AttackDamage);
 	}
 	bool bReplicatedEndAbility = true;
 	bool bWasCancelled = false;
