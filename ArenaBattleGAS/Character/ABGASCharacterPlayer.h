@@ -7,6 +7,8 @@
 #include "Character/ABCharacterPlayer.h"
 #include "ABGASCharacterPlayer.generated.h"
 
+struct FGameplayEventData;
+
 UCLASS()
 class ARENABATTLEGAS_API AABGASCharacterPlayer : public AABCharacterPlayer, public IAbilitySystemInterface
 {
@@ -34,6 +36,11 @@ protected:
 
 	UFUNCTION()
 	virtual void OnOutOfHealth();
+	
+	void EquipWeapon(const FGameplayEventData* EventData);
+
+	void UnEquipWeapon(const FGameplayEventData* EventData);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
@@ -46,4 +53,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UABGASWidgetComponent> HpBar;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	TObjectPtr<class USkeletalMesh> WeaponMesh;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	float WeaponRange;
+	
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	float WeaponDamage;
 };
+
+

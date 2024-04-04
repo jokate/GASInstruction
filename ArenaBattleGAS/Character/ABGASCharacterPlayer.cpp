@@ -8,6 +8,7 @@
 #include "UI/ABGASWidgetComponent.h"
 #include "UI/ABGASUserWidget.h"
 #include "Attribute/ABCharacterAttributeSet.h"
+#include "Tag/ABGameplayTag.h"
 
 // Sets default values
 AABGASCharacterPlayer::AABGASCharacterPlayer()
@@ -32,6 +33,16 @@ AABGASCharacterPlayer::AABGASCharacterPlayer()
 		HpBar->SetDrawSize(FVector2D(200.0f, 20.f));
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> WeaponMeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/InfinityBladeWeapons/Weapons/Blunt/Blunt_Hellhammer/SK_Blunt_HellHammer.SK_Blunt_HellHammer'"));
+
+	if (WeaponMeshRef.Object)
+	{
+		WeaponMesh = WeaponMeshRef.Object;
+	}
+	
+	WeaponRange = 75.0f;
+	WeaponDamage = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -56,6 +67,9 @@ void AABGASCharacterPlayer::PossessedBy(AController* NewController)
 	{
 		ASC = GASPS->GetAbilitySystemComponent();
 		ASC->InitAbilityActorInfo(GASPS, this);
+
+		ASC->GenericGameplayEventCallbacks.FindOrAdd(ABTAG_EVENT_CHARACTER_WEAPONEQUIP).AddUObject(this, &AABGASCharacterPlayer::EquipWeapon);
+		ASC->GenericGameplayEventCallbacks.FindOrAdd(ABTAG_EVENT_CHARACTER_WEAPONUNEQUIP).AddUObject(this, &AABGASCharacterPlayer::UnEquipWeapon);
 		const UABCharacterAttributeSet* CurrentAttributeSet = ASC->GetSet<UABCharacterAttributeSet>();
 		if (CurrentAttributeSet)
 		{
@@ -135,4 +149,32 @@ void AABGASCharacterPlayer::OnOutOfHealth()
 	SetDead();
 }
 
+void AABGASCharacterPlayer::UnEquipWeapon(const FGameplayEventData* EventData)
+{
+	if (Weapon)
+	{
+		Weapon->SetSkeletalMesh(nullptr);
 
+		//여기서 어트리뷰트를 바꿀 거임.
+		const float CurrentAttackRange = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute());
+		const float CurrentAttackRate = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRateAttribute());
+
+		ASC->SetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute(), CurrentAttackRange - WeaponRange);
+		ASC->SetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRateAttribute(), CurrentAttackRate - WeaponDamage);
+	}
+}
+
+void AABGASCharacterPlayer::EquipWeapon(const FGameplayEventData* EventData)
+{
+	if (Weapon)
+	{
+		Weapon->SetSkeletalMesh(WeaponMesh);
+		
+		//여기서 어트리뷰트를 바꿀 거임.
+		const float CurrentAttackRange = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute());
+		const float CurrentAttackRate = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRateAttribute());
+
+		ASC->SetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute(), CurrentAttackRange + WeaponRange);
+		ASC->SetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRateAttribute(), CurrentAttackRate + WeaponDamage);
+	}
+}
