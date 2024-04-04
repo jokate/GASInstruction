@@ -5,6 +5,7 @@
 
 #include "ArenaBattleGAS.h"
 #include "GameplayEffectExtension.h"
+#include "Tag/ABGameplayTag.h"
 
 UABCharacterAttributeSet::UABCharacterAttributeSet() :
 	AttackRange(100.0f),
@@ -27,6 +28,31 @@ void UABCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attr
 	}
 }
 
+bool UABCharacterAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+
+	//여기서 데미지가 들어왔는데,
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		if (Data.EvaluatedData.Magnitude > 0.0f) 
+		{
+			// 타겟으로 삼는 놈이 무적태그를 쥐고 있으면?
+			if (Data.Target.HasMatchingGameplayTag(ABTAG_Character_INVINSIBLE))
+			{
+				//무력화 시킨다.
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 void UABCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
@@ -43,6 +69,15 @@ void UABCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffectMo
 		SetHealth(FMath::Clamp(GetHealth() - GetDamage(),  MinHealth, GetMaxHealth()));
 		SetDamage(0);
 	}
+
+	if (GetHealth() <= 0.0f && !bOutOfHealth)
+	{
+		//수동으로 태그를 넣어준다.
+		Data.Target.AddLooseGameplayTag(ABTAG_Character_ISDEAD);
+		OnOutOfHealth.Broadcast();
+	}
+
+	bOutOfHealth = (GetHealth() <= 0.0f);
 }
 
 /*

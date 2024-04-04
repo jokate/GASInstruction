@@ -66,8 +66,15 @@ void UABGA_AttackHitCheck::OnTraceResultCallback(const FGameplayAbilityTargetDat
 		if (EffectSpecHandle.IsValid())
 		{
 			//상대방에게 해당 이펙트를 발현할 수 있음.
-			EffectSpecHandle.Data->SetSetByCallerMagnitude(ABTAG_DATA_DAMAGE, -SourceAttribute->GetAttackRate());
+			//EffectSpecHandle.Data->SetSetByCallerMagnitude(ABTAG_DATA_DAMAGE, -SourceAttribute->GetAttackRate());
 			ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetDataHandle);
+		}
+
+		FGameplayEffectSpecHandle BuffEffectSpecHandle = MakeOutgoingGameplayEffectSpec(AttackBuffEffect);
+
+		if (BuffEffectSpecHandle.IsValid())
+		{
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, BuffEffectSpecHandle);
 		}
 	}
 	bool bReplicatedEndAbility = true;

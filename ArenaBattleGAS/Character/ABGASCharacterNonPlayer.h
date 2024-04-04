@@ -21,6 +21,9 @@ protected:
 
 	virtual void PossessedBy(AController* NewController) override;
 
+	UFUNCTION()
+	virtual void OnOutOfHealth();
+
 public:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -33,4 +36,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UGameplayEffect> InitStatEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UABGASWidgetComponent> HpBar;
 };
