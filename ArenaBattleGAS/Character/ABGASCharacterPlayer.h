@@ -18,6 +18,7 @@ public:
 	// Sets default values for this character's properties
 	AABGASCharacterPlayer();
 
+	FORCEINLINE virtual class UAnimMontage* GetSkillActionMontage() { return SkillActionMontage;}
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,7 +45,7 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
-
+	
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TMap<int32, TSubclassOf<class UGameplayAbility>> StartInputAbilities;
 	
@@ -62,6 +63,12 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	float WeaponDamage;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<class UGameplayAbility> SkillAbilityClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> SkillActionMontage;
 };
 
 

@@ -29,5 +29,8 @@ protected :
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TSubclassOf<class UGameplayEffect> AttackBuffEffect;
 
-	float CurrentLevel;	
+	float CurrentLevel;
+
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TSubclassOf<class AABTA_Trace> TargetActorClass;
 };

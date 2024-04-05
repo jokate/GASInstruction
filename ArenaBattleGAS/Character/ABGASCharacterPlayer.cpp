@@ -43,6 +43,13 @@ AABGASCharacterPlayer::AABGASCharacterPlayer()
 	
 	WeaponRange = 75.0f;
 	WeaponDamage = 100.0f;
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> SkillActionMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/ArenaBattle/Animation/AM_SkillAttack.AM_SkillAttack'"));
+
+	if (SkillActionMontageRef.Object)
+	{
+		SkillActionMontage = SkillActionMontageRef.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -109,6 +116,7 @@ void AABGASCharacterPlayer::SetupGASInputComponent()
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AABGASCharacterPlayer::GASInputPressed, 0);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AABGASCharacterPlayer::GASInputReleased, 0);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AABGASCharacterPlayer::GASInputPressed, 1);
+		EnhancedInputComponent->BindAction(SkillAction, ETriggerEvent::Triggered, this, &AABGASCharacterPlayer::GASInputPressed, 2);
 	}
 }
 
@@ -155,6 +163,14 @@ void AABGASCharacterPlayer::UnEquipWeapon(const FGameplayEventData* EventData)
 	{
 		Weapon->SetSkeletalMesh(nullptr);
 
+		//탈착하는 것.
+		FGameplayAbilitySpec* SkillAbilitySpec = ASC->FindAbilitySpecFromClass(SkillAbilityClass);
+
+		if (SkillAbilitySpec)
+		{
+			ASC->ClearAbility(SkillAbilitySpec->Handle);
+		}
+		
 		//여기서 어트리뷰트를 바꿀 거임.
 		const float CurrentAttackRange = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute());
 		const float CurrentAttackRate = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRateAttribute());
@@ -169,6 +185,15 @@ void AABGASCharacterPlayer::EquipWeapon(const FGameplayEventData* EventData)
 	if (Weapon)
 	{
 		Weapon->SetSkeletalMesh(WeaponMesh);
+
+		FGameplayAbilitySpec SkillAbilitySpec(SkillAbilityClass);
+		SkillAbilitySpec.InputID = 2;
+
+		//현재 어빌리티가 부여되어있지 않은 경우에?
+		if (!ASC->FindAbilitySpecFromClass(SkillAbilityClass))
+		{
+			ASC->GiveAbility(SkillAbilitySpec);
+		}
 		
 		//여기서 어트리뷰트를 바꿀 거임.
 		const float CurrentAttackRange = ASC->GetNumericAttributeBase(UABCharacterAttributeSet::GetAttackRangeAttribute());
